@@ -79,7 +79,8 @@ while True:
             logger.info('BBU SN: {} invalid.'.format(result["sn"]))
             print "BBU SN: {} is not valid. Please check!".format(result["sn"])
             break
-
+        elif not result["sn"]:
+            raw_input("BBU SN not found")
         else:
             print "Unhandled error, please check", result
             logger.info('Error'.format(result))
