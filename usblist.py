@@ -5,15 +5,35 @@ from datetime import *
 import logging
 
 now = datetime.now()
-logging.basicConfig(filename='easnverify_{}.log'.format(now.strftime("%d%m%Y%H%M")), filemode='w', format='{} - %(message)s'.format(now.strftime("%d %b %Y %H:%M")), level=logging.DEBUG)
+logging.basicConfig(filename='easnverify_{}.log'.format(now.strftime("%d%m%Y%H%M")), filemode='w', format='{} : %(message)s'.format(now.strftime("%d %b %Y %H:%M")), level=logging.DEBUG)
 logger = logging.getLogger("newlog")
-
-logger.info('Starting test')
 
 eatondates = {"E": 2014, "F":2015, "G": 2016, "H": 2017, "I": 2018, "J": 2019,
             "K": 2020, "L": 2021, "M": 2022, "N": 2023, "O": 2024, "P": 2025,
             "Q": 2026, "R": 2027, "S": 2028, "T": 2029}
 
+def confirm(prompt=None, resp=False):
+    if prompt is None:
+        prompt = 'Confirm'
+    if resp:
+        prompt = '%s [%s]|%s: ' % (prompt, 'y', 'n')
+    else:
+        prompt = '%s [%s]|%s: ' % (prompt, 'n', 'y')
+    while True:
+        ans = raw_input(prompt)
+        if not ans:
+            return resp
+        if ans not in ['y', 'Y', 'n', 'N']:
+            print 'please enter y or n.'
+            continue
+        if ans == 'y' or ans == 'Y':
+            return True
+        if ans == 'n' or ans == 'N':
+            return False
+
+validatesn=confirm(prompt="Do you want to barcode validation for serial numbers during test? y/n")
+
+logger.info('Starting test. {} barcode validation.'.format("With" if validatesn else "Without"))
 def diff_month(d1, d2):
     return (d1.year - d2.year) * 12 + d1.month - d2.month
 
@@ -42,6 +62,12 @@ while True:
         # print result
         if result["valid"] and not result["twoYearOld"]:
             logger.info('BBU SN: {} is OK. BBU production time {} months.'.format(result["sn"],result["age"]))
+            if validatesn:
+                scannedsn = raw_input("Please scan device's barcode:")
+                if scannedsn != str(result["sn"]):
+                    logger.info("Scanned barcode SN: {} not equal device's memory SN: {}.".format(scannedsn,str(result["sn"])))
+                    print "Error. Scanned barcode SN: {} not equal device's memory SN: {}. Please check".format(scannedsn,result["sn"])
+                    break
             raw_input("BBU SN: {} is OK. BBU production time {} months. Connect next BBU and press enter...".format(result["sn"],result["age"]))
 
         elif result['valid'] and result['twoYearOld']:
