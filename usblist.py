@@ -3,6 +3,7 @@ import usb
 import re
 from datetime import *
 import logging
+from termcolor import colored
 
 now = datetime.now()
 logging.basicConfig(filename='easnverify_{}.log'.format(now.strftime("%d%m%Y%H%M")), filemode='w', format='{} : %(message)s'.format(now.strftime("%d %b %Y %H:%M")), level=logging.DEBUG)
@@ -66,23 +67,25 @@ while True:
                 scannedsn = raw_input("Please scan device's barcode:")
                 if scannedsn != str(result["sn"]):
                     logger.info("Scanned barcode SN: {} not equal device's memory SN: {}.".format(scannedsn,str(result["sn"])))
-                    print "Error. Scanned barcode SN: {} not equal device's memory SN: {}. Please check".format(scannedsn,result["sn"])
+                    print colored("Error. Scanned barcode SN: {} not equal device's memory SN: {}. Please check".format(scannedsn,result["sn"]), "red")
                     break
-            raw_input("BBU SN: {} is OK. BBU production time {} months. Connect next BBU and press enter...".format(result["sn"],result["age"]))
+            print colored("BBU SN: {} is OK. BBU production time {} months.".format(result["sn"],result["age"]), "green")
+            raw_input("Connect next BBU and press enter...")
 
         elif result['valid'] and result['twoYearOld']:
             logger.info('BBU SN: {} MFG date expired. BBU production time {} months.'.format(result["sn"], result["age"]))
-            print "Error! Manufacturing date  for SN: {} is too old ({} months). Please check!".format(result["sn"], result["age"])
+            print colored("Error! Manufacturing date  for SN: {} is too old ({} months). Please check!".format(result["sn"], result["age"]), "red")
             break
 
         elif result["sn"] and not result["valid"]:
             logger.info('BBU SN: {} invalid.'.format(result["sn"]))
-            print "BBU SN: {} is not valid. Please check!".format(result["sn"])
+            print colored("BBU SN: {} is not valid. Please check!".format(result["sn"]), "red")
             break
         elif not result["sn"]:
-            raw_input("BBU SN not found")
+            print colored("BBU SN not found")
+            raw_input("Connect next BBU and press enter...")
         else:
-            print "Unhandled error, please check", result
+            print colored("Unhandled error, please check\n{}".format(result),"red")
             logger.info('Error'.format(result))
             break
     # except(ValueError, AttributeError, NotImplementedError):
