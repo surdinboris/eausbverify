@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
-import usb
+import usb.backend.libusb0
+import sys
 import re
 from datetime import *
 import logging
@@ -7,6 +8,7 @@ from termcolor import colored
 from colorama import init
 init()
 
+backend = usb.backend.libusb0.get_backend(find_library=lambda x: "libusb0.dll")
 now = datetime.now()
 logging.basicConfig(filename='easnverify_{}.log'.format(now.strftime("%d%m%Y%H%M")), filemode='w', format='{} : %(message)s'.format(now.strftime("%d %b %Y %H:%M")), level=logging.DEBUG)
 logger = logging.getLogger("newlog")
@@ -44,10 +46,16 @@ testpattern="[P|G]117([E-T])(\d{2})(\w{3})$"
 # print "Test pattern is {}".format(testpattern)
 
 def chusb():
-    dev = usb.core.find(idVendor=1123, idProduct=65535)
+    # dev = usb.core.find(find_all=True)
+    # print usb.util.get_string(det, det.deviceVersion)
+    # for cfg in dev:
+    #     sys.stdout.write('Decimal VendorID=' + str(cfg.idVendor) + ' & ProductID=' + str(cfg.idProduct) + '\n')
+    #     sys.stdout.write('Hexadecimal VendorID=' + hex(cfg.idVendor) + ' & ProductID=' + hex(cfg.idProduct) + '\n\n')
+    dev = usb.core.find(idVendor=1123, idProduct=65535, backend=backend)
     result = {"sn": None, "valid": None, "twoYearOld": None,  "age": None}
     if dev:
         result["sn"] = usb.util.get_string(dev, dev.iSerialNumber)
+        print result["sn"]
         # print sn
         result["valid"] = (re.match(testpattern, result["sn"]))
         if result["valid"]:
